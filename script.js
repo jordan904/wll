@@ -229,4 +229,71 @@
       });
     });
   }
+
+  /* --- Stat counter + bounce --- */
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var statNumbers = document.querySelectorAll('.stat-number[data-count], .stat-number[data-text]');
+
+  if (!prefersReducedMotion && statNumbers.length > 0) {
+    var countersStarted = false;
+
+    function runCounters() {
+      if (countersStarted) return;
+      countersStarted = true;
+
+      statNumbers.forEach(function (el, i) {
+        var delay = i * 400;
+
+        setTimeout(function () {
+          var countTarget = el.getAttribute('data-count');
+          var textTarget = el.getAttribute('data-text');
+
+          if (countTarget) {
+            var target = parseInt(countTarget);
+            var suffix = el.getAttribute('data-suffix') || '';
+            var duration = 1200;
+            var startTime = null;
+
+            function step(timestamp) {
+              if (!startTime) startTime = timestamp;
+              var progress = Math.min((timestamp - startTime) / duration, 1);
+              var eased = 1 - Math.pow(1 - progress, 3);
+              el.textContent = Math.floor(eased * target) + suffix;
+              if (progress < 1) {
+                requestAnimationFrame(step);
+              } else {
+                el.textContent = target + suffix;
+                el.classList.add('stat-bounce');
+              }
+            }
+            requestAnimationFrame(step);
+          } else if (textTarget) {
+            el.textContent = textTarget;
+            el.classList.add('stat-bounce');
+          }
+        }, delay);
+      });
+    }
+
+    var statsSection = document.querySelector('.about-stats');
+    if (statsSection) {
+      var statsObserver = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+          runCounters();
+          statsObserver.disconnect();
+        }
+      }, { threshold: 0.5 });
+      statsObserver.observe(statsSection);
+    }
+  } else {
+    statNumbers.forEach(function (el) {
+      var countTarget = el.getAttribute('data-count');
+      var textTarget = el.getAttribute('data-text');
+      if (countTarget) {
+        el.textContent = countTarget + (el.getAttribute('data-suffix') || '');
+      } else if (textTarget) {
+        el.textContent = textTarget;
+      }
+    });
+  }
 })();
