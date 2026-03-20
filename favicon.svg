@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="4" fill="#1a3a1f"/>
+  <path d="M16 4C13.5 7 9 10 9 15c0 3.87 3.13 7 7 7s7-3.13 7-7c0-5-4.5-8-7-11z" fill="#2e6b3a"/>
+  <text x="16" y="27" text-anchor="middle" font-family="serif" font-size="7" font-weight="700" fill="#c8a45a">WLL</text>
+</svg>
