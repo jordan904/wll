@@ -233,69 +233,65 @@
   /* --- Stat counter + bounce --- */
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var statNumbers = document.querySelectorAll('.stat-number[data-count], .stat-number[data-text]');
+  var countersStarted = false;
 
-  if (!prefersReducedMotion && statNumbers.length > 0) {
-    var countersStarted = false;
+  function runCounters() {
+    if (countersStarted) return;
+    countersStarted = true;
 
-    function runCounters() {
-      if (countersStarted) return;
-      countersStarted = true;
+    statNumbers.forEach(function (el, i) {
+      var delay = i * 500;
 
-      statNumbers.forEach(function (el, i) {
-        var delay = i * 400;
+      setTimeout(function () {
+        var countTarget = el.getAttribute('data-count');
+        var textTarget = el.getAttribute('data-text');
 
-        setTimeout(function () {
-          var countTarget = el.getAttribute('data-count');
-          var textTarget = el.getAttribute('data-text');
+        if (countTarget) {
+          var target = parseInt(countTarget);
+          var suffix = el.getAttribute('data-suffix') || '';
+          var duration = 1200;
+          var startTime = null;
 
-          if (countTarget) {
-            var target = parseInt(countTarget);
-            var suffix = el.getAttribute('data-suffix') || '';
-            var duration = 1200;
-            var startTime = null;
-
-            function step(timestamp) {
-              if (!startTime) startTime = timestamp;
-              var progress = Math.min((timestamp - startTime) / duration, 1);
-              var eased = 1 - Math.pow(1 - progress, 3);
-              el.textContent = Math.floor(eased * target) + suffix;
-              if (progress < 1) {
-                requestAnimationFrame(step);
-              } else {
-                el.textContent = target + suffix;
-                el.classList.add('stat-bounce');
-              }
+          function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            var progress = Math.min((timestamp - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(eased * target) + suffix;
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            } else {
+              el.textContent = target + suffix;
+              el.classList.add('stat-bounce');
             }
-            requestAnimationFrame(step);
-          } else if (textTarget) {
-            el.textContent = textTarget;
-            el.classList.add('stat-bounce');
           }
-        }, delay);
-      });
-    }
+          requestAnimationFrame(step);
+        } else if (textTarget) {
+          el.textContent = textTarget;
+          el.classList.add('stat-bounce');
+        }
+      }, delay);
+    });
+  }
 
-    var statsSection = document.querySelector('.about-stats');
-    if (statsSection) {
-      var statsObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            setTimeout(runCounters, 300);
-            statsObserver.disconnect();
-          }
-        });
-      }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
-      statsObserver.observe(statsSection);
-    }
-  } else {
+  if (prefersReducedMotion) {
     statNumbers.forEach(function (el) {
       var countTarget = el.getAttribute('data-count');
       var textTarget = el.getAttribute('data-text');
-      if (countTarget) {
-        el.textContent = countTarget + (el.getAttribute('data-suffix') || '');
-      } else if (textTarget) {
-        el.textContent = textTarget;
-      }
+      if (countTarget) el.textContent = countTarget + (el.getAttribute('data-suffix') || '');
+      else if (textTarget) el.textContent = textTarget;
     });
+  } else if (statNumbers.length > 0) {
+    // Use scroll listener as fallback — trigger when about section is in view
+    function checkStats() {
+      var aboutSection = document.getElementById('about');
+      if (!aboutSection) return;
+      var rect = aboutSection.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.8 && rect.bottom > 0) {
+        runCounters();
+        window.removeEventListener('scroll', checkStats);
+      }
+    }
+    window.addEventListener('scroll', checkStats, { passive: true });
+    checkStats(); // check immediately in case already visible
   }
 })();
