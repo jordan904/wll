@@ -47,6 +47,16 @@
     });
   });
 
+  /* Close mobile nav on outside click */
+  document.addEventListener('click', function (e) {
+    if (!navbar.contains(e.target) && navLinks.classList.contains('open')) {
+      navLinks.classList.remove('open');
+      navToggle.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+  });
+
   /* --- Scroll-triggered fade-in animations --- */
   if ('IntersectionObserver' in window) {
     var fadeEls = document.querySelectorAll('.fade-in');
