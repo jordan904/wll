@@ -278,11 +278,13 @@
     var statsSection = document.querySelector('.about-stats');
     if (statsSection) {
       var statsObserver = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
-          runCounters();
-          statsObserver.disconnect();
-        }
-      }, { threshold: 0.5 });
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            setTimeout(runCounters, 300);
+            statsObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
       statsObserver.observe(statsSection);
     }
   } else {
